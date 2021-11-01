@@ -34,6 +34,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "zip": "rm -rf release/* && node scripts/zip.js",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
