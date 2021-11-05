@@ -14,10 +14,12 @@ import Raw from "@editorjs/raw";
 
 import ToolBar from "./ToolBar";
 import MyCreate from "./MyCreate/index";
+import Tags, { genId } from "./Tags";
 import SpliteLine from "./MyCreate/SplitLine";
 import WriteList from "./MyCreate/WriteLists";
 
 import * as api from "./api";
+import Emitter, { events } from "./emitter";
 
 const Layout = styled.div`
   display: flex;
@@ -34,6 +36,9 @@ const ColumnLeft = styled.div`
 const ColumnRight = styled.div`
   transition: margin 150ms ease-in-out, transform 100ms ease;
   width: 400px;
+  flex-basis: 400px;
+  flex-grow: 0;
+  flex-shrink: 0;
   /* max-width: 400px; */
   /* flex: 0 0 400px; */
 `;
@@ -51,7 +56,7 @@ const CreateDiv = styled.div`
       font-size: 25px;
       border: none;
       border-bottom: 1px solid gray;
-      font-weight: 700;
+      font-weight: 600;
     }
   }
 `;
@@ -62,6 +67,8 @@ function App() {
   const [editorTitle, setEditorTitle] = useState("");
   const [writerData, setWriterData] = useState({});
   const [reWriterData, setReWriterData] = useState({});
+  const [tags, setTags] = useState([]);
+
   const [width, setWidth] = useState(400);
   const [myCreateShow, setMyCreateShow] = useState(true);
   const ejInstance = useRef();
@@ -84,21 +91,43 @@ function App() {
     setMyCreateShow(!myCreateShow);
   }
   function saveDraft() {
+    const data = {
+      id: dataId,
+      title: editorTitle,
+      data: writerData,
+      tags: tags.map((t) => t.value),
+      draft: true,
+    };
     api
-      .saveDraft({ id: dataId, title: editorTitle, data: writerData })
-      .then((id) => setDataId(id))
+      .saveDraft(data)
+      .then((id) => {
+        setDataId(id);
+        data.id = id;
+        Emitter.emit(events.updateSaved, data);
+      })
       .catch((err) => console.error(err));
   }
   function publishWrite() {
+    const data = {
+      id: dataId,
+      title: editorTitle,
+      data: writerData,
+      tags: tags.map((t) => t.value),
+      draft: false,
+    };
     api
-      .publishWrite({ id: dataId, title: editorTitle, data: writerData })
-      .then((id) => setDataId(id))
+      .publishWrite(data)
+      .then((id) => {
+        setDataId(id);
+        data.id = id;
+        Emitter.emit(events.updateSaved, data);
+      })
       .catch((err) => console.error(err));
   }
 
   const initEditor = () => {
     const editor = new EditorJS({
-      placeholder: "Let`s write an awesome story!",
+      placeholder: "正文",
       holder: EDITTOR_HOLDER_ID,
       logLevel: "ERROR",
       data: writerData,
@@ -166,6 +195,7 @@ function App() {
                 setEditorTitle(titleValue);
               }}
             ></input>
+            <Tags tags={tags} setTags={setTags} />
           </div>
           <div id={EDITTOR_HOLDER_ID} />
         </CreateDiv>
@@ -174,6 +204,7 @@ function App() {
         style={{
           marginRight: myCreateShow ? "0px" : `-${width}px`,
           width: `${width}px`,
+          flexBasis: `${width}px`,
         }}
       >
         <MyCreate
@@ -187,10 +218,19 @@ function App() {
           }
         >
           <WriteList
-            setWriterData={({ id, title, data }) => {
+            setWriterData={({ id, title, tags, data }) => {
               setDataId(id);
               setEditorTitle(title);
               setReWriterData(data);
+              setTags(
+                (tags || []).map((v) => {
+                  const id = genId();
+                  return {
+                    id,
+                    value: v,
+                  };
+                })
+              );
             }}
           ></WriteList>
         </MyCreate>

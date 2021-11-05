@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import * as api from "../api";
+import Emitter, { events } from "../emitter";
 
 const WriteListDiv = styled.div`
-  /* padding: 10px; */
+  height: calc(100% - 40px);
 `;
 
 const Tabs = styled.div`
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid gray;
-  height: 35px;
+  height: 30px;
+  flex-grow: 1;
   & span {
     flex: 1;
     display: flex;
@@ -32,7 +34,8 @@ const Tabs = styled.div`
 `;
 
 const WriterDiv = styled.div`
-  /* padding: 0 10px; */
+  height: calc(100% - 30px + 3px);
+  overflow-y: scroll;
 `;
 
 const WriterCard = styled.div`
@@ -41,20 +44,51 @@ const WriterCard = styled.div`
   border-radius: 5px;
   & > .writerc {
     padding: 10px;
+    & > h2 {
+      margin: 5px 0 12px 0;
+      padding: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    & > .tags {
+      & > span {
+        padding: 1px 5px;
+        border: 1px solid gray;
+        margin-right: 5px;
+        border-radius: 3px;
+      }
+    }
   }
-  & > .btns {
+  & > .footer {
     margin-top: 5px;
     border-top: 1px solid gray;
-    text-align: end;
-
-    & > span {
-      display: inline-block;
-      padding: 5px 10px;
-      border-left: 1px solid gray;
-      &:hover {
-        cursor: pointer;
-        color: #fff;
+    display: flex;
+    justify-content: space-between;
+    & > .infos {
+      display: inline-flex;
+      align-items: center;
+      & > span {
+        margin-left: 10px;
+        border: 1px solid gray;
+        padding: 0px 3px;
         background: gray;
+        color: #fff;
+        border-radius: 3px;
+      }
+    }
+    & > .btns {
+      text-align: end;
+
+      & > span {
+        display: inline-block;
+        padding: 5px 10px;
+        border-left: 1px solid gray;
+        &:hover {
+          cursor: pointer;
+          color: #fff;
+          background: gray;
+        }
       }
     }
   }
@@ -87,17 +121,38 @@ const PUBLISH_STATUS = {
 };
 
 export default function WriteList({ children, setWriterData }) {
+  let _writes = [];
   const [writes, setWrites] = useState([]);
   const [filter, setFilter] = useState("");
-  const [tab, setTab] = useState(TABS.ALL);
+  const [tab, setTab] = useState(TABS.ALL.value);
   useEffect(() => {
+    loadMyList();
+    Emitter.on(events.updateSaved, updateSaved);
+    return () => {
+      Emitter.off(events.updateSaved, updateSaved);
+    };
+  }, []);
+
+  function loadMyList() {
     api
       .loadMyWrite()
       .then((data) => {
         setWrites(data);
+        _writes = data;
       })
       .catch(console.error);
-  }, []);
+  }
+  function updateSaved(data) {
+    data._id = data.id;
+    const index = _writes.findIndex((w) => w._id == data._id);
+    if (index === -1) {
+      _writes = [data, ..._writes];
+      setWrites(_writes);
+    } else {
+      _writes = [..._writes.slice(0, index), data, ..._writes.slice(index + 1)];
+      setWrites(_writes);
+    }
+  }
 
   return (
     <WriteListDiv>
@@ -138,29 +193,46 @@ export default function WriteList({ children, setWriterData }) {
           .map((w) => {
             return (
               <WriterCard key={w._id}>
-                <div className="writerc">{w.title}</div>
-                <div className="btns">
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setWriterData({
-                        id: w._id,
-                        title: w.title,
-                        data: w.data,
-                      });
-                    }}
-                  >
-                    Edit
-                  </span>
-                  <span
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      window.open(`/writer/${w._id}`);
-                    }}
-                  >
-                    Preview
-                  </span>
-                  <span>Del</span>
+                <div className="writerc">
+                  <h2>{w.title}</h2>
+                  <div className="tags">
+                    {w.tags?.map((t, index) => {
+                      return <span key={index}>{t}</span>;
+                    })}
+                  </div>
+                </div>
+                <div className="footer">
+                  <div className="infos">
+                    {w.draft ? (
+                      <span>draft</span>
+                    ) : (
+                      <span>{w.publishStatus}</span>
+                    )}
+                  </div>
+                  <div className="btns">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setWriterData({
+                          id: w._id,
+                          title: w.title,
+                          data: w.data,
+                          tags: w.tags,
+                        });
+                      }}
+                    >
+                      Edit
+                    </span>
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(`/writer/${w._id}`);
+                      }}
+                    >
+                      Preview
+                    </span>
+                    <span>Del</span>
+                  </div>
                 </div>
               </WriterCard>
             );
