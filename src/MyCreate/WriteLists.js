@@ -144,7 +144,7 @@ export default function WriteList({ children, setWriterData }) {
   }
   function updateSaved(data) {
     data._id = data.id;
-    const index = _writes.findIndex((w) => w._id == data._id);
+    const index = _writes.findIndex((w) => w._id === data._id);
     if (index === -1) {
       _writes = [data, ..._writes];
       setWrites(_writes);

@@ -32,6 +32,8 @@ const Layout = styled.div`
 
 const ColumnLeft = styled.div`
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 `;
 const ColumnRight = styled.div`
   transition: margin 150ms ease-in-out, transform 100ms ease;
@@ -46,6 +48,8 @@ const CreateDiv = styled.div`
   flex: 0 0 1;
   display: flex;
   flex-direction: column;
+  padding-top: 20px;
+  overflow-y: scroll;
 
   & > .title {
     width: 660px;

@@ -3,11 +3,13 @@ import styled from "styled-components";
 const ToolBarDiv = styled.div`
   position: relative;
   border-bottom: 1px solid gray;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
   height: 35px;
   overflow: hidden;
   user-select: none;
-
+  flex-basis: 35px;
+  flex-grow: 0;
+  flex-shrink: 0;
   & > div {
     height: 100%;
     display: flex;
@@ -18,6 +20,7 @@ const ToolBarDiv = styled.div`
     font-size: 1.2rem;
     padding: 0 10px;
     height: 35px;
+
     text-align: center;
     display: inline-block;
     display: inline-flex;
