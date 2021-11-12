@@ -21,6 +21,11 @@ import WriteList from "./MyCreate/WriteLists";
 import * as api from "./api";
 import Emitter, { events } from "./emitter";
 
+import MarkdownView from "./MarkdownView";
+import ProseMirrorView from "./ProseMirrorView";
+
+import "./editor.css";
+
 const Layout = styled.div`
   display: flex;
   height: 100%;
@@ -51,16 +56,19 @@ const CreateDiv = styled.div`
   padding-top: 20px;
   overflow-y: scroll;
 
-  & > .title {
+  & > div {
     width: 660px;
     margin: 0 auto;
-    position: relative;
-    & > input {
-      width: 100%;
-      font-size: 25px;
-      border: none;
-      border-bottom: 1px solid gray;
-      font-weight: 600;
+    &.title {
+      margin-bottom: 5px;
+      position: relative;
+      & > input {
+        width: 100%;
+        font-size: 25px;
+        border: none;
+        border-bottom: 1px solid gray;
+        font-weight: 600;
+      }
     }
   }
 `;
@@ -76,15 +84,22 @@ function App() {
   const [width, setWidth] = useState(400);
   const [myCreateShow, setMyCreateShow] = useState(true);
   const ejInstance = useRef();
-  useEffect(() => {
-    if (!ejInstance.current) {
-      initEditor();
-    }
-    return () => {
-      ejInstance.current.destroy();
-      ejInstance.current = null;
-    };
-  }, []);
+
+  const [useMarkdown, setUseMarkdown] = useState(false);
+  const [content, setContent] = useState("");
+
+  // useEffect(() => {
+  //   // if (!ejInstance.current) {
+  //   //   initEditor();
+  //   // }
+  //   // return () => {
+  //   //   ejInstance.current.destroy();
+  //   //   ejInstance.current = null;
+  //   // };
+  //   let View = useMarkdown ? MarkdownView : ProseMirrorView;
+  //   let place = document.querySelector("#editor");
+  //   new View(place, content);
+  // }, [useMarkdown]);
 
   useEffect(() => {
     setWriterData(reWriterData);
@@ -188,6 +203,8 @@ function App() {
           saveDraft={saveDraft}
           publishWrite={publishWrite}
           dataId={dataId}
+          useMarkdown={useMarkdown}
+          setUseMarkdown={setUseMarkdown}
         ></ToolBar>
         <CreateDiv>
           <div className="title">
@@ -201,7 +218,10 @@ function App() {
             ></input>
             <Tags tags={tags} setTags={setTags} />
           </div>
-          <div id={EDITTOR_HOLDER_ID} />
+          {/* <div id={EDITTOR_HOLDER_ID} /> */}
+          <div id="writer">
+            {useMarkdown ? <MarkdownView /> : <ProseMirrorView />}
+          </div>
         </CreateDiv>
       </ColumnLeft>
       <ColumnRight

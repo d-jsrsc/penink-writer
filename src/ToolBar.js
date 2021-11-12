@@ -1,3 +1,4 @@
+import { useState } from "react";
 import styled from "styled-components";
 
 const ToolBarDiv = styled.div`
@@ -34,8 +35,13 @@ const ToolBarDiv = styled.div`
     }
   }
   & > div.toolbar {
+    position: relative;
     flex-direction: column;
+
     & > div {
+      display: flex;
+      position: relative;
+      align-items: center;
       justify-content: end;
       height: 100%;
       display: flex;
@@ -43,10 +49,24 @@ const ToolBarDiv = styled.div`
       margin: 0 auto;
       border-right: 1px solid gray;
       & span.btn {
-        font-size: 1rem;
+        font-size: 0.9rem;
         & a {
           text-decoration: none;
           text-decoration-color: inherit;
+        }
+      }
+      & > div.saves {
+        border: none;
+        display: flex;
+        align-items: center;
+        /* justify-content: space-around; */
+        position: absolute;
+        right: -158px;
+        /* width: 120px; */
+        & span.btn {
+          padding: 0 9px;
+          border: none;
+          border-right: 1px solid gray;
         }
       }
     }
@@ -58,6 +78,8 @@ export default function ToolBar({
   publishWrite,
   dataId,
   showMyCreate,
+  useMarkdown,
+  setUseMarkdown,
 }) {
   function preview() {
     window.open(`/writer/${dataId}`, "_blank");
@@ -69,17 +91,35 @@ export default function ToolBar({
       </div>
       <div className="toolbar">
         <div>
-          <span className="btn" onClick={saveDraft}>
-            存草稿
-          </span>
-          <span className="btn" onClick={publishWrite}>
-            发布
-          </span>
-          {dataId && (
+          <div>
+            <span
+              className="btn"
+              onClick={() => {
+                setUseMarkdown(true);
+              }}
+            >
+              Markdown
+            </span>
+            <span
+              className="btn"
+              onClick={() => {
+                setUseMarkdown(false);
+              }}
+            >
+              富文本
+            </span>
+          </div>
+          <div className="saves">
             <span className="btn" onClick={preview}>
               预览
             </span>
-          )}
+            <span className="btn" onClick={saveDraft}>
+              存草稿
+            </span>
+            <span className="btn" onClick={publishWrite}>
+              发布
+            </span>
+          </div>
         </div>
       </div>
       <div style={{ position: "absolute", right: 0, top: 0 }}>
