@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toggleMark, setBlockType, wrapIn } from "prosemirror-commands";
+// import { schema } from "prosemirror-markdown";
+import { schema } from "prosemirror-schema-basic";
+
 import styled from "styled-components";
+
+import Emitter from "../utils/emitter";
 
 const ToolBarDiv = styled.div`
   position: relative;
@@ -18,8 +24,8 @@ const ToolBarDiv = styled.div`
   }
 
   & span.btn {
-    font-size: 1.2rem;
-    padding: 0 10px;
+    font-size: 2rem;
+    padding: 0 5px;
     height: 35px;
 
     text-align: center;
@@ -42,10 +48,12 @@ const ToolBarDiv = styled.div`
       display: flex;
       position: relative;
       align-items: center;
-      justify-content: end;
+      justify-content: space-between;
       height: 100%;
       display: flex;
-      width: 670px;
+      width: 680px;
+      background: white;
+      box-sizing: border-box;
       margin: 0 auto;
       border-right: 1px solid gray;
       & span.btn {
@@ -69,10 +77,30 @@ const ToolBarDiv = styled.div`
           border-right: 1px solid gray;
         }
       }
+
+      & .menus {
+        display: flex;
+        align-items: center;
+        justify-content: stretch;
+        & > span {
+          padding: 0 3px;
+          border: 1px solid gray;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          &:hover {
+            cursor: pointer;
+          }
+          & > img {
+            width: 25px;
+          }
+        }
+      }
     }
   }
 `;
 
+const ToggleMarStrongCmd = toggleMark(schema.marks.strong);
 export default function ToolBar({
   saveDraft,
   publishWrite,
@@ -80,22 +108,39 @@ export default function ToolBar({
   showMyCreate,
   useMarkdown,
   setUseMarkdown,
+  children,
 }) {
+  useEffect(() => {
+    Emitter.on("view", view);
+    return () => {
+      Emitter.off("view", view);
+    };
+
+    function view(v) {
+      const active = ToggleMarStrongCmd(v.state, null, v);
+      console.log({ active });
+    }
+  });
+
   function preview() {
     window.open(`/writer/${dataId}`, "_blank");
   }
   return (
-    <ToolBarDiv>
+    <ToolBarDiv id="toolbar">
       <div style={{ position: "absolute", left: 0, top: 0 }}>
-        <span style={{ fontSize: "1.5rem" }}>创作你的创作</span>
+        <span style={{ fontSize: "1.5rem" }}>创作</span>
       </div>
       <div className="toolbar">
         <div>
+          {children}
           <div>
             <span
               className="btn"
               onClick={() => {
                 setUseMarkdown(true);
+              }}
+              style={{
+                backgroundColor: (useMarkdown && "#8ab4f8") || "",
               }}
             >
               Markdown
@@ -104,6 +149,9 @@ export default function ToolBar({
               className="btn"
               onClick={() => {
                 setUseMarkdown(false);
+              }}
+              style={{
+                backgroundColor: (!useMarkdown && "#8ab4f8") || "",
               }}
             >
               富文本
@@ -122,9 +170,16 @@ export default function ToolBar({
           </div>
         </div>
       </div>
-      <div style={{ position: "absolute", right: 0, top: 0 }}>
-        <span className="btn" onClick={showMyCreate}>
-          <i className="fa fa-th-list" aria-hidden="true"></i>
+      <div
+        style={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          backgroundColor: "white",
+        }}
+      >
+        <span className="btn material-icons" onClick={showMyCreate}>
+          list
         </span>
       </div>
     </ToolBarDiv>

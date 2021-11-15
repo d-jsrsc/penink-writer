@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 import * as api from "../api";
-import Emitter, { events } from "../emitter";
+import Emitter, { events } from "../utils/emitter";
 
 const WriteListDiv = styled.div`
   height: calc(100% - 40px);

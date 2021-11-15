@@ -14,6 +14,5 @@ Object.freeze(Emitter);
 export default Emitter;
 
 export const events = {
-  reloadMyList: "reloadMyList",
-  updateSaved: "updateSaved",
+  ViewStateDispatch: "ViewStateDispatch",
 };

@@ -1,0 +1,34 @@
+#meuns {
+  display: flex;
+  align-items: stretch;
+  margin: 2px;
+}
+
+#meuns > span {
+  padding: 0 2px;
+  /* border: 1px solid gray; */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white;
+  margin: 0 2px;
+  border-radius: 5px;
+  outline: 1px solid lightgray;
+  outline-offset: 1px;
+  cursor: pointer;
+  user-select: none;
+}
+
+#meuns > span > img {
+  width: 30px;
+}
+#meuns > span.big {
+  padding: 0 5px;
+}
+#meuns > span.big > img {
+  width: 21px;
+}
+
+#meuns > span.active {
+  background-color: lightgray;
+}

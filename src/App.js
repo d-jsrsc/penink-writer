@@ -1,28 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import EditorJS from "@editorjs/editorjs";
-import Header from "@editorjs/header";
-import CheckList from "@editorjs/checklist";
-import Marker from "@editorjs/marker";
-import Embed from "@editorjs/embed";
-import LinkTool from "@editorjs/link";
-import Image from "@editorjs/image";
-import InlineCode from "@editorjs/inline-code";
-import Table from "@editorjs/table";
-import List from "@editorjs/list";
-import Raw from "@editorjs/raw";
 
-import ToolBar from "./ToolBar";
+import { schema } from "./ProseMirror/schema";
+import {
+  defaultMarkdownParser,
+  defaultMarkdownSerializer,
+} from "./ProseMirror/markdown/index";
+import ReactDOM from "react-dom";
+import { EditorState, Plugin, PluginKey } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
+
+import ToolBar from "./ProseMirror/ToolBar";
 import MyCreate from "./MyCreate/index";
 import Tags, { genId } from "./Tags";
 import SpliteLine from "./MyCreate/SplitLine";
 import WriteList from "./MyCreate/WriteLists";
 
-import * as api from "./api";
-import Emitter, { events } from "./emitter";
+import { setUpPlugins } from "./ProseMirror/Plugins";
 
+import logger from "./utils/logger";
+
+import * as api from "./api";
+import Emitter, { events } from "./utils/emitter";
+
+import MenusGen from "./ProseMirror/Meuns";
 import MarkdownView from "./MarkdownView";
-import ProseMirrorView from "./ProseMirrorView";
 
 import "./editor.css";
 
@@ -50,19 +52,20 @@ const ColumnRight = styled.div`
   /* flex: 0 0 400px; */
 `;
 const CreateDiv = styled.div`
-  flex: 0 0 1;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
   padding-top: 20px;
   overflow-y: scroll;
 
   & > div {
-    width: 660px;
+    width: 680px;
     margin: 0 auto;
     &.title {
       margin-bottom: 5px;
       position: relative;
       & > input {
+        box-sizing: border-box;
         width: 100%;
         font-size: 25px;
         border: none;
@@ -70,41 +73,82 @@ const CreateDiv = styled.div`
         font-weight: 600;
       }
     }
+    &#writer {
+      flex-grow: 1;
+
+      & > #editor {
+        min-height: 1000px;
+        display: flex;
+        align-items: stretch;
+      }
+      & .ProseMirror-menubar-wrapper,
+      & .ProseMirror {
+        width: 100%;
+        /* & * {
+          margin: 0em 0;
+          padding: 0;
+          line-height: 1.5;
+        } */
+      }
+    }
   }
 `;
 
-const EDITTOR_HOLDER_ID = "editorjs";
 function App() {
   const [dataId, setDataId] = useState("");
   const [editorTitle, setEditorTitle] = useState("");
-  const [writerData, setWriterData] = useState({});
-  const [reWriterData, setReWriterData] = useState({});
   const [tags, setTags] = useState([]);
 
   const [width, setWidth] = useState(400);
   const [myCreateShow, setMyCreateShow] = useState(true);
-  const ejInstance = useRef();
 
   const [useMarkdown, setUseMarkdown] = useState(false);
   const [content, setContent] = useState("");
-
-  // useEffect(() => {
-  //   // if (!ejInstance.current) {
-  //   //   initEditor();
-  //   // }
-  //   // return () => {
-  //   //   ejInstance.current.destroy();
-  //   //   ejInstance.current = null;
-  //   // };
-  //   let View = useMarkdown ? MarkdownView : ProseMirrorView;
-  //   let place = document.querySelector("#editor");
-  //   new View(place, content);
-  // }, [useMarkdown]);
-
   useEffect(() => {
-    setWriterData(reWriterData);
-    ejInstance.current?.render(reWriterData);
-  }, [reWriterData]);
+    const target = document.querySelector("#writer");
+    if (!useMarkdown) {
+      const editorView = new EditorView(target, {
+        state: EditorState.create({
+          doc: defaultMarkdownParser.parse(content),
+
+          plugins: setUpPlugins({ schema }).concat([
+            new Plugin({
+              key: new PluginKey("console$"),
+              view(edtorView) {
+                return {
+                  update(view, prevState) {
+                    const docContent = defaultMarkdownSerializer.serialize(
+                      view.state.doc
+                    );
+                    setContent(docContent);
+                  },
+                  destroy() {},
+                };
+              },
+            }),
+          ]),
+        }),
+        dispatchTransaction: (transaction) => {
+          console.debug(transaction);
+          // const docContent = defaultMarkdownSerializer.serialize(
+          //   editorView.state.doc
+          // );
+          // setContent(docContent);
+          const newState = editorView.state.apply(transaction);
+          editorView.updateState(newState);
+          Emitter.emit(events.ViewStateDispatch, newState);
+        },
+      });
+      const MenusDom = MenusGen(editorView, schema);
+      ReactDOM.render(MenusDom, document.getElementById("meuns"));
+      return () => {
+        logger.debug("destroy");
+        editorView.destroy();
+      };
+    } else {
+      ReactDOM.render(<div></div>, document.getElementById("meuns"));
+    }
+  }, [useMarkdown]);
 
   function showMyCreate() {
     setMyCreateShow(!myCreateShow);
@@ -113,7 +157,7 @@ function App() {
     const data = {
       id: dataId,
       title: editorTitle,
-      data: writerData,
+      data: content,
       tags: tags.map((t) => t.value),
       draft: true,
     };
@@ -130,7 +174,7 @@ function App() {
     const data = {
       id: dataId,
       title: editorTitle,
-      data: writerData,
+      data: content,
       tags: tags.map((t) => t.value),
       draft: false,
     };
@@ -144,57 +188,6 @@ function App() {
       .catch((err) => console.error(err));
   }
 
-  const initEditor = () => {
-    const editor = new EditorJS({
-      placeholder: "正文",
-      holder: EDITTOR_HOLDER_ID,
-      logLevel: "ERROR",
-      data: writerData,
-      onReady: () => {
-        ejInstance.current = editor;
-        console.log("ready");
-      },
-      onChange: () => {
-        ejInstance.current.saver
-          .save()
-          .then((data) => {
-            setWriterData(data);
-          })
-          .catch(console.error);
-      },
-      tools: {
-        header: {
-          class: Header,
-          config: {
-            placeholder: "标题",
-            levels: [2, 3, 4],
-            defaultLevel: 3,
-          },
-        },
-        image: {
-          class: Image,
-          config: {
-            endpoints: {
-              byFile: "/api/media/uploadfile", // Your backend file uploader endpoint
-              byUrl: "/api/meida/fetchfile", // Your endpoint that provides uploading by Url
-            },
-            captionPlaceholder: "intro",
-          },
-        },
-        checklist: CheckList,
-        linkTool: LinkTool,
-        marker: Marker,
-        inlineCode: InlineCode,
-        embed: {
-          class: Embed,
-          inlineToolbar: true,
-        },
-        table: Table,
-        list: List,
-        raw: Raw,
-      },
-    });
-  };
   return (
     <Layout>
       <ColumnLeft>
@@ -205,7 +198,9 @@ function App() {
           dataId={dataId}
           useMarkdown={useMarkdown}
           setUseMarkdown={setUseMarkdown}
-        ></ToolBar>
+        >
+          <div id="meuns" />
+        </ToolBar>
         <CreateDiv>
           <div className="title">
             <input
@@ -220,7 +215,9 @@ function App() {
           </div>
           {/* <div id={EDITTOR_HOLDER_ID} /> */}
           <div id="writer">
-            {useMarkdown ? <MarkdownView /> : <ProseMirrorView />}
+            {useMarkdown ? (
+              <MarkdownView content={content} setContent={setContent} />
+            ) : null}
           </div>
         </CreateDiv>
       </ColumnLeft>
@@ -245,7 +242,7 @@ function App() {
             setWriterData={({ id, title, tags, data }) => {
               setDataId(id);
               setEditorTitle(title);
-              setReWriterData(data);
+              setContent(data);
               setTags(
                 (tags || []).map((v) => {
                   const id = genId();
