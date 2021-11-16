@@ -48,6 +48,7 @@ export default function MarkdownView({ content, setContent }) {
     <MarkdownViewDiv id="editor">
       <textarea
         className="textarea"
+        id="md-textarea"
         // contentEditable
         ref={textRef}
         value={content}

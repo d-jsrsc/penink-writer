@@ -19,14 +19,17 @@
   user-select: none;
 }
 
+#meuns > span:first-child {
+  margin-left: 0 !important;
+}
 #meuns > span > img {
-  width: 30px;
+  width: 24px;
 }
 #meuns > span.big {
-  padding: 0 5px;
+  padding: 0 2px;
 }
 #meuns > span.big > img {
-  width: 21px;
+  width: 19px;
 }
 
 #meuns > span.active {

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { toggleMark, setBlockType, wrapIn } from "prosemirror-commands";
+import { toggleMark, setBlockType, wrapIn, lift } from "prosemirror-commands";
+import { wrapInList } from "prosemirror-schema-list";
 import { undo, redo } from "prosemirror-history";
 
 import logger from "../utils/logger";
 import emitter, { events } from "../utils/emitter";
 
+import ParagraphImg from "./icons/icons8-paragraph-50.png";
 import H2 from "./icons/icons8-header-2-50.png";
 import H3 from "./icons/icons8-header-3-50.png";
 import Bold from "./icons/icons8-bold-50.png";
@@ -16,11 +18,50 @@ import image from "./icons/icons8-image-50.png";
 import redoImg from "./icons/icons8-redo-50.png";
 import undoImg from "./icons/icons8-undo-50.png";
 import horizontalLineImg from "./icons/icons8-horizontal-line-50.png";
+import quoteImg from "./icons/icons8-quote-left-50.png";
+import orderListImg from "./icons/icons8-list-ol-50.png";
+import bulletListImg from "./icons/icons8-list-ul-50.png";
+import liftImg from "./icons/icons8-indent-50.png";
 
 import "./Menus.css";
 
 export default function MenusGen(editorview, schema) {
   const cmds = {
+    bulletList: () => {
+      wrapInList(schema.nodes.bullet_list)(
+        editorview.state,
+        editorview.dispatch,
+        editorview
+      );
+      editorview.focus();
+    },
+    orderList: () => {
+      wrapInList(schema.nodes.ordered_list)(
+        editorview.state,
+        editorview.dispatch,
+        editorview
+      );
+      editorview.focus();
+    },
+    lift: (e) => {
+      lift(editorview.state, editorview.dispatch, editorview, e);
+      editorview.focus();
+    },
+    quote: (attrs) => {
+      wrapIn(schema.nodes.blockquote, attrs)(
+        editorview.state,
+        editorview.dispatch
+      );
+      editorview.focus();
+    },
+    paragraph: () => {
+      const r = setBlockType(schema.nodes.paragraph)(
+        editorview.state,
+        editorview.dispatch,
+        editorview
+      );
+      editorview.focus();
+    },
     h2: (e) => {
       const r = setBlockType(schema.nodes.heading, { level: 2 })(
         editorview.state,
@@ -156,6 +197,8 @@ export function Toolbar({ execCmd, schema }) {
   const [undoEnable, setUndoEnable] = useState(false);
   const [h2Active, setH2Active] = useState(false);
   const [h3Active, setH3Active] = useState(false);
+  const [paragraphActive, setParagraphActive] = useState(true);
+  const [quoteActive, setQuoteActive] = useState(false);
 
   useEffect(() => {
     emitter.on(events.ViewStateDispatch, stateDispatch);
@@ -188,6 +231,11 @@ export function Toolbar({ execCmd, schema }) {
       nodeType: schema.nodes.heading,
       attrs: { level: 3 },
     });
+    const activeParagraphActive = active(state, {
+      nodeType: schema.nodes.paragraph,
+    });
+
+    const activeQuote = wrapIn(schema.nodes.blockquote)(state);
 
     logger.debug("%O", { enableUndo, enableRedo });
 
@@ -203,11 +251,19 @@ export function Toolbar({ execCmd, schema }) {
     setHorizonalEnable(enableHorizontal);
     setH2Active(activeH2);
     setH3Active(activeH3);
+    setParagraphActive(activeParagraphActive);
+    setQuoteActive(activeQuote);
   }
   return (
     <>
       {/* <span>Toolbar</span>
       <span style={{ border: "none", outline: "none" }}>|</span> */}
+      <span
+        className={paragraphActive ? "active big" : "big"}
+        onClick={() => execCmd("paragraph")}
+      >
+        <img src={ParagraphImg}></img>
+      </span>
       <span className={h2Active ? "active" : ""} onClick={() => execCmd("h2")}>
         <img src={H2}></img>
       </span>
@@ -292,14 +348,47 @@ export function Toolbar({ execCmd, schema }) {
             execCmd("image", {
               attrs: {
                 src: "https://imomoe.one/anime/20130138.html",
-                title: "s",
-                alt: "s",
+                // title: "s",
+                // alt: "s",
               },
             });
           }
         }}
       >
         <img src={image}></img>
+      </span>
+      <span style={{ border: "none", outline: "none" }}>|</span>
+      <span
+        className={"big"}
+        onClick={() => {
+          execCmd("quote", {});
+        }}
+      >
+        <img src={quoteImg}></img>
+      </span>
+      <span
+        className={"big"}
+        onClick={() => {
+          execCmd("orderList");
+        }}
+      >
+        <img src={orderListImg}></img>
+      </span>
+      <span
+        className={"big"}
+        onClick={() => {
+          execCmd("bulletList");
+        }}
+      >
+        <img src={bulletListImg}></img>
+      </span>
+      <span
+        className={"big"}
+        onClick={() => {
+          execCmd("lift");
+        }}
+      >
+        <img src={liftImg}></img>
       </span>
     </>
   );

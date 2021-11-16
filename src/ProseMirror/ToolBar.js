@@ -3,6 +3,8 @@ import { toggleMark, setBlockType, wrapIn } from "prosemirror-commands";
 // import { schema } from "prosemirror-markdown";
 import { schema } from "prosemirror-schema-basic";
 
+import ListImg from "./icons/icons8-list-50.png";
+
 import styled from "styled-components";
 
 import Emitter from "../utils/emitter";
@@ -178,8 +180,8 @@ export default function ToolBar({
           backgroundColor: "white",
         }}
       >
-        <span className="btn material-icons" onClick={showMyCreate}>
-          list
+        <span className="btn" onClick={showMyCreate}>
+          <img src={ListImg} width="23px" />
         </span>
       </div>
     </ToolBarDiv>

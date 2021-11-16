@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import $ from "jquery";
 
 import { schema } from "./ProseMirror/schema";
 import {
@@ -146,7 +147,30 @@ function App() {
         editorView.destroy();
       };
     } else {
-      ReactDOM.render(<div></div>, document.getElementById("meuns"));
+      ReactDOM.render(
+        <div>
+          <button
+            onClick={() => {
+              const cursorPosition = $("#md-textarea").prop("selectionStart");
+              const mdtext = $("#md-textarea").text();
+
+              console.log(
+                { cursorPosition },
+                mdtext.substring(0, cursorPosition),
+                mdtext.substring(cursorPosition)
+              );
+              setContent(`${mdtext.substring(0, cursorPosition)}
+              \n![](FASFAFADFADSFADSFASDFDA)\n\n${mdtext.substring(
+                cursorPosition
+              )}
+              `);
+            }}
+          >
+            Image
+          </button>
+        </div>,
+        document.getElementById("meuns")
+      );
     }
   }, [useMarkdown]);
 
@@ -204,7 +228,7 @@ function App() {
         <CreateDiv>
           <div className="title">
             <input
-              placeholder="题目"
+              placeholder="Title"
               value={editorTitle}
               onChange={(e) => {
                 const titleValue = e.target.value;

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import styled from "styled-components";
 
+import DeleteImg from "./ProseMirror/icons/icons8-delete-50.png";
+import AddImg from "./ProseMirror/icons/icons8-plus-math-50.png";
+
 const TagsDiv = styled.div`
   margin: 5px 0 0 0;
   & > span {
@@ -49,7 +52,7 @@ export default function Tags({ tags, setTags }) {
         >
           {tag.value}
           <span className="hidden">
-            <i className="fa fa-times"></i>
+            <img src={DeleteImg} width="15px"></img>
           </span>
         </span>
       ))}
@@ -86,7 +89,7 @@ export default function Tags({ tags, setTags }) {
               setTag("");
             }}
           >
-            <i className="fa fa-times"></i>
+            <img src={DeleteImg} width="15px"></img>
           </span>
         </span>
       )) || (
@@ -99,7 +102,7 @@ export default function Tags({ tags, setTags }) {
         >
           标签
           <span className="hidden">
-            <i className="fa fa-plus"></i>
+            <img src={AddImg} width="15px" />
           </span>
         </span>
       )}
