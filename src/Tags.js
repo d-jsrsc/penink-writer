@@ -1,8 +1,8 @@
 import { useState } from "react";
 import styled from "styled-components";
 
-import DeleteImg from "./ProseMirror/icons/icons8-delete-50.png";
-import AddImg from "./ProseMirror/icons/icons8-plus-math-50.png";
+import DeleteImg from "./icons/icons8-delete-50.png";
+import AddImg from "./icons/icons8-plus-math-50.png";
 
 const TagsDiv = styled.div`
   margin: 5px 0 0 0;

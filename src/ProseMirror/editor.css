@@ -352,9 +352,13 @@ img.ProseMirror-separator {
 }
 
 .ProseMirror {
-  padding: 4px 8px 4px 14px;
+  padding: 5px 10px;
   line-height: 1.2;
   outline: none;
+}
+
+.ProseMirror img {
+  width: 100%;
 }
 
 .ProseMirror p {

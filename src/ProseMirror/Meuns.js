@@ -6,22 +6,22 @@ import { undo, redo } from "prosemirror-history";
 import logger from "../utils/logger";
 import emitter, { events } from "../utils/emitter";
 
-import ParagraphImg from "./icons/icons8-paragraph-50.png";
-import H2 from "./icons/icons8-header-2-50.png";
-import H3 from "./icons/icons8-header-3-50.png";
-import Bold from "./icons/icons8-bold-50.png";
-import Italic from "./icons/icons8-italic-50.png";
-import sourceCode from "./icons/icons8-source-code-50.png";
-import link from "./icons/icons8-link-50.png";
-// import codeBlock from "./icons/icons8-code-50.png";
-import image from "./icons/icons8-image-50.png";
-import redoImg from "./icons/icons8-redo-50.png";
-import undoImg from "./icons/icons8-undo-50.png";
-import horizontalLineImg from "./icons/icons8-horizontal-line-50.png";
-import quoteImg from "./icons/icons8-quote-left-50.png";
-import orderListImg from "./icons/icons8-list-ol-50.png";
-import bulletListImg from "./icons/icons8-list-ul-50.png";
-import liftImg from "./icons/icons8-indent-50.png";
+import ParagraphImg from "../icons/icons8-paragraph-50.png";
+import H2 from "../icons/icons8-header-2-50.png";
+import H3 from "../icons/icons8-header-3-50.png";
+import Bold from "../icons/icons8-bold-50.png";
+import Italic from "../icons/icons8-italic-50.png";
+import sourceCode from "../icons/icons8-source-code-50.png";
+import link from "../icons/icons8-link-50.png";
+// import codeBlock from "../icons/icons8-code-50.png";
+import image from "../icons/icons8-image-50.png";
+import redoImg from "../icons/icons8-redo-50.png";
+import undoImg from "../icons/icons8-undo-50.png";
+import horizontalLineImg from "../icons/icons8-horizontal-line-50.png";
+import quoteImg from "../icons/icons8-quote-left-50.png";
+import orderListImg from "../icons/icons8-list-ol-50.png";
+import bulletListImg from "../icons/icons8-list-ul-50.png";
+import liftImg from "../icons/icons8-indent-50.png";
 
 import "./Menus.css";
 
@@ -347,9 +347,9 @@ export function Toolbar({ execCmd, schema }) {
           if (imageEnable) {
             execCmd("image", {
               attrs: {
-                src: "https://imomoe.one/anime/20130138.html",
-                // title: "s",
-                // alt: "s",
+                src: "http://static.penink.com/img/defaultcardimg.png",
+                title: "s",
+                alt: "s",
               },
             });
           }

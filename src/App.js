@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
-import $ from "jquery";
 
 import { schema } from "./ProseMirror/schema";
 import {
@@ -17,17 +16,17 @@ import Tags, { genId } from "./Tags";
 import SpliteLine from "./MyCreate/SplitLine";
 import WriteList from "./MyCreate/WriteLists";
 
+import MarkdownMeun from "./Toolbar/MarkdownMeun";
 import { setUpPlugins } from "./ProseMirror/Plugins";
 
 import logger from "./utils/logger";
 
-import * as api from "./api";
+import * as api from "./api/index";
 import Emitter, { events } from "./utils/emitter";
 
 import MenusGen from "./ProseMirror/Meuns";
-import MarkdownView from "./MarkdownView";
-
-import "./editor.css";
+import MarkdownView from "./Markdown/index";
+import Preview from "./Preview";
 
 const Layout = styled.div`
   display: flex;
@@ -60,7 +59,7 @@ const CreateDiv = styled.div`
   overflow-y: scroll;
 
   & > div {
-    width: 680px;
+    width: 780px;
     margin: 0 auto;
     &.title {
       margin-bottom: 5px;
@@ -96,6 +95,9 @@ const CreateDiv = styled.div`
 `;
 
 function App() {
+  const previewRef = useRef(null);
+  const previewCreate = () => previewRef.current.open();
+
   const [dataId, setDataId] = useState("");
   const [editorTitle, setEditorTitle] = useState("");
   const [tags, setTags] = useState([]);
@@ -148,27 +150,7 @@ function App() {
       };
     } else {
       ReactDOM.render(
-        <div>
-          <button
-            onClick={() => {
-              const cursorPosition = $("#md-textarea").prop("selectionStart");
-              const mdtext = $("#md-textarea").text();
-
-              console.log(
-                { cursorPosition },
-                mdtext.substring(0, cursorPosition),
-                mdtext.substring(cursorPosition)
-              );
-              setContent(`${mdtext.substring(0, cursorPosition)}
-              \n![](FASFAFADFADSFADSFASDFDA)\n\n${mdtext.substring(
-                cursorPosition
-              )}
-              `);
-            }}
-          >
-            Image
-          </button>
-        </div>,
+        <MarkdownMeun setContent={setContent} />,
         document.getElementById("meuns")
       );
     }
@@ -213,74 +195,83 @@ function App() {
   }
 
   return (
-    <Layout>
-      <ColumnLeft>
-        <ToolBar
-          showMyCreate={showMyCreate}
-          saveDraft={saveDraft}
-          publishWrite={publishWrite}
-          dataId={dataId}
-          useMarkdown={useMarkdown}
-          setUseMarkdown={setUseMarkdown}
+    <>
+      <Layout>
+        <ColumnLeft>
+          <ToolBar
+            showMyCreate={showMyCreate}
+            saveDraft={saveDraft}
+            publishWrite={publishWrite}
+            dataId={dataId}
+            useMarkdown={useMarkdown}
+            setUseMarkdown={setUseMarkdown}
+            previewCreate={previewCreate}
+          >
+            <div id="meuns" />
+          </ToolBar>
+          <CreateDiv>
+            <div className="title">
+              <input
+                placeholder="Title"
+                value={editorTitle}
+                onChange={(e) => {
+                  const titleValue = e.target.value;
+                  setEditorTitle(titleValue);
+                }}
+              ></input>
+              <Tags tags={tags} setTags={setTags} />
+            </div>
+            {/* <div id={EDITTOR_HOLDER_ID} /> */}
+            <div id="writer">
+              {useMarkdown ? (
+                <MarkdownView content={content} setContent={setContent} />
+              ) : null}
+            </div>
+          </CreateDiv>
+        </ColumnLeft>
+        <ColumnRight
+          style={{
+            marginRight: myCreateShow ? "0px" : `-${width}px`,
+            width: `${width}px`,
+            flexBasis: `${width}px`,
+          }}
         >
-          <div id="meuns" />
-        </ToolBar>
-        <CreateDiv>
-          <div className="title">
-            <input
-              placeholder="Title"
-              value={editorTitle}
-              onChange={(e) => {
-                const titleValue = e.target.value;
-                setEditorTitle(titleValue);
+          <MyCreate
+            SplitLine={
+              <SpliteLine
+                diffFunc={(willWidth) => {
+                  if (willWidth > 700 || willWidth < 300) return;
+                  setWidth(willWidth);
+                }}
+              />
+            }
+          >
+            <WriteList
+              setWriterData={({ id, title, tags, data }) => {
+                setDataId(id);
+                setEditorTitle(title);
+                setContent(data);
+                setTags(
+                  (tags || []).map((v) => {
+                    const id = genId();
+                    return {
+                      id,
+                      value: v,
+                    };
+                  })
+                );
               }}
-            ></input>
-            <Tags tags={tags} setTags={setTags} />
-          </div>
-          {/* <div id={EDITTOR_HOLDER_ID} /> */}
-          <div id="writer">
-            {useMarkdown ? (
-              <MarkdownView content={content} setContent={setContent} />
-            ) : null}
-          </div>
-        </CreateDiv>
-      </ColumnLeft>
-      <ColumnRight
-        style={{
-          marginRight: myCreateShow ? "0px" : `-${width}px`,
-          width: `${width}px`,
-          flexBasis: `${width}px`,
-        }}
-      >
-        <MyCreate
-          SplitLine={
-            <SpliteLine
-              diffFunc={(willWidth) => {
-                if (willWidth > 700 || willWidth < 300) return;
-                setWidth(willWidth);
-              }}
-            />
-          }
-        >
-          <WriteList
-            setWriterData={({ id, title, tags, data }) => {
-              setDataId(id);
-              setEditorTitle(title);
-              setContent(data);
-              setTags(
-                (tags || []).map((v) => {
-                  const id = genId();
-                  return {
-                    id,
-                    value: v,
-                  };
-                })
-              );
-            }}
-          ></WriteList>
-        </MyCreate>
-      </ColumnRight>
-    </Layout>
+            ></WriteList>
+          </MyCreate>
+        </ColumnRight>
+      </Layout>
+      <Preview
+        ref={previewRef}
+        title={editorTitle}
+        tags={tags}
+        content={content}
+      />
+    </>
   );
 }
 

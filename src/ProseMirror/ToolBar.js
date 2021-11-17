@@ -3,11 +3,12 @@ import { toggleMark, setBlockType, wrapIn } from "prosemirror-commands";
 // import { schema } from "prosemirror-markdown";
 import { schema } from "prosemirror-schema-basic";
 
-import ListImg from "./icons/icons8-list-50.png";
+import ListImg from "../icons/icons8-list-50.png";
 
 import styled from "styled-components";
 
 import Emitter from "../utils/emitter";
+import "./editor.css";
 
 const ToolBarDiv = styled.div`
   position: relative;
@@ -53,7 +54,7 @@ const ToolBarDiv = styled.div`
       justify-content: space-between;
       height: 100%;
       display: flex;
-      width: 680px;
+      width: 780px;
       background: white;
       box-sizing: border-box;
       margin: 0 auto;
@@ -110,6 +111,7 @@ export default function ToolBar({
   showMyCreate,
   useMarkdown,
   setUseMarkdown,
+  previewCreate,
   children,
 }) {
   useEffect(() => {
@@ -124,7 +126,7 @@ export default function ToolBar({
     }
   });
 
-  function preview() {
+  function viewCreate() {
     window.open(`/writer/${dataId}`, "_blank");
   }
   return (
@@ -136,6 +138,9 @@ export default function ToolBar({
         <div>
           {children}
           <div>
+            <span className="btn" onClick={previewCreate}>
+              预览
+            </span>
             <span
               className="btn"
               onClick={() => {
@@ -160,14 +165,14 @@ export default function ToolBar({
             </span>
           </div>
           <div className="saves">
-            <span className="btn" onClick={preview}>
-              预览
-            </span>
             <span className="btn" onClick={saveDraft}>
               存草稿
             </span>
             <span className="btn" onClick={publishWrite}>
               发布
+            </span>
+            <span className="btn" onClick={viewCreate}>
+              查看
             </span>
           </div>
         </div>
